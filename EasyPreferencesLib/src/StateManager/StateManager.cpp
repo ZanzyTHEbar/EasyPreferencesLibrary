@@ -12,16 +12,6 @@ void StateManager::setState(ProgramStates::DeviceStates::State_e state)
     _current_state = state;
 }
 
-void StateManager::setState(ProgramStates::DeviceStates::WiFiState_e state)
-{
-    _current_wifi_state = state;
-}
-
-void StateManager::setState(ProgramStates::DeviceStates::LightSensorState_e state)
-{
-    _current_light_sensor_state = state;
-}
-
 void StateManager::setState(ProgramStates::DeviceStates::ConfigState_e state)
 {
     _current_config_state = state;
@@ -35,16 +25,6 @@ void StateManager::setState(ProgramStates::DeviceStates::ConfigState_e state)
 ProgramStates::DeviceStates::State_e StateManager::getCurrentState()
 {
     return _current_state;
-}
-
-ProgramStates::DeviceStates::WiFiState_e StateManager::getCurrentWiFiState()
-{
-    return _current_wifi_state;
-}
-
-ProgramStates::DeviceStates::LightSensorState_e StateManager::getCurrentLightSensorState()
-{
-    return _current_light_sensor_state;
 }
 
 ProgramStates::DeviceStates::ConfigState_e StateManager::getCurrentConfigState()
