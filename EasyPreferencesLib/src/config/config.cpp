@@ -7,35 +7,17 @@ Config::~Config() {}
 
 void Config::begin()
 {
-    if (_preferences != nullptr)
+    if (_preferences.begin(_configName))
     {
-        if (_preferences->begin(_configName, false, _partitionName))
-        {
-            log_i("Config %s opened\n", _configName);
-            _preferences->end();
-            log_d("Config initialized\n");
-            stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::Configured);
-        }
-        else
-        {
-            log_e("Config %s not opened\n", _configName);
-        }
+        log_i("Config %s opened\n", _configName);
+        _preferences.end();
+        log_d("Config initialized\n");
+        stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::Configured);
     }
     else
     {
-        log_e("Config %s not initialised\n", _configName);
-        _preferences = new Preferences();
-        if (_preferences->begin(_configName, false, _partitionName))
-        {
-            log_i("Config %s opened\n", _configName);
-            _preferences->end();
-            log_d("Config initialized\n");
-            stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::Configured);
-        }
-        else
-        {
-            log_e("Config %s not opened\n", _configName);
-        }
+        log_e("Config %s not opened\n", _configName);
+        stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::ErrorConfig);
     }
 }
 
