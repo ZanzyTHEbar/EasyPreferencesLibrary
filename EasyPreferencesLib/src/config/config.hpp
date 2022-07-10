@@ -22,9 +22,8 @@ public:
     void checkConfigState();
 
 private:
-    Preferences *_preferences;
+    Preferences _preferences;
     const char *_configName;
     const char *_partitionName;
 };
-extern Config config;
 #endif

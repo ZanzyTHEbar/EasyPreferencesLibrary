@@ -191,5 +191,3 @@ size_t Config::freeEntries()
     stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::Configured);
     return freeEntries;
 }
-
-Config config;
