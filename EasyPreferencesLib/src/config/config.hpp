@@ -15,7 +15,9 @@ public:
     template <typename T>
     void write(const char *key, T *&buff);
     template <typename T>
-    bool read(const char *key, T *buff);
+    bool read(const char *key, T &buff);
+    template <typename T>
+    bool read(const char *key, T *&buff);
     void clear();
     void remove(const char *key);
     size_t getValueLength(const char *key);

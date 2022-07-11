@@ -92,7 +92,6 @@ template void Config::write<float_t>(const char *key, float_t *&buff);
 template void Config::write<double_t>(const char *key, double_t *&buff);
 template void Config::write<const char *>(const char *key, const char **&buff);
 template void Config::write<String>(const char *key, String *&buff);
-
 /**
  * @brief Reads a value from the config
  *
@@ -103,7 +102,7 @@ template void Config::write<String>(const char *key, String *&buff);
  * @see Takes a buffer as parameter to avoid the need to create a temporary variable
  */
 template <typename T>
-bool Config::read(const char *key, T *buff)
+bool Config::read(const char *key, T &buff)
 {
     if (stateManager.getCurrentConfigState() == ProgramStates::DeviceStates::ConfigState_e::Writing)
     {
@@ -126,19 +125,66 @@ bool Config::read(const char *key, T *buff)
     return true;
 }
 
-template bool Config::read<uint8_t>(const char *key, uint8_t *buff);
-template bool Config::read<uint16_t>(const char *key, uint16_t *buff);
-template bool Config::read<uint32_t>(const char *key, uint32_t *buff);
-template bool Config::read<uint64_t>(const char *key, uint64_t *buff);
-template bool Config::read<int8_t>(const char *key, int8_t *buff);
-template bool Config::read<int16_t>(const char *key, int16_t *buff);
-template bool Config::read<int32_t>(const char *key, int32_t *buff);
-template bool Config::read<int64_t>(const char *key, int64_t *buff);
-template bool Config::read<bool>(const char *key, bool *buff);
-template bool Config::read<float_t>(const char *key, float_t *buff);
-template bool Config::read<double_t>(const char *key, double_t *buff);
-template bool Config::read<const char *>(const char *key, const char **buff);
-template bool Config::read<String>(const char *key, String *buff);
+template bool Config::read<uint8_t>(const char *key, uint8_t &buff);
+template bool Config::read<uint16_t>(const char *key, uint16_t &buff);
+template bool Config::read<uint32_t>(const char *key, uint32_t &buff);
+template bool Config::read<uint64_t>(const char *key, uint64_t &buff);
+template bool Config::read<int8_t>(const char *key, int8_t &buff);
+template bool Config::read<int16_t>(const char *key, int16_t &buff);
+template bool Config::read<int32_t>(const char *key, int32_t &buff);
+template bool Config::read<int64_t>(const char *key, int64_t &buff);
+template bool Config::read<bool>(const char *key, bool &buff);
+template bool Config::read<float_t>(const char *key, float_t &buff);
+template bool Config::read<double_t>(const char *key, double_t &buff);
+template bool Config::read<const char *>(const char *key, const char *&buff);
+template bool Config::read<String>(const char *key, String &buff);
+
+/**
+ * @brief Reads a value from the config
+ *
+ * @tparam T Type of the value to read
+ * @param key Key of the value to read
+ * @param value Value to read
+ * @return void
+ * @see Takes a buffer as parameter to avoid the need to create a temporary variable
+ */
+template <typename T>
+bool Config::read(const char *key, T *&buff)
+{
+    if (stateManager.getCurrentConfigState() == ProgramStates::DeviceStates::ConfigState_e::Writing)
+    {
+        log_e("Config::read() - Config is being written and can not be accessed currently");
+        stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::ErrorConfig);
+        return false;
+    }
+
+    if (sizeof(buff) != _preferences.getBytes(key, (T *)&buff, sizeof(buff)))
+    {
+        log_e("Config::read() - Size of buffer does not match size of value");
+        stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::ErrorConfig);
+        return false;
+    }
+    stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::Reading);
+    _preferences.begin(_configName, true);
+    _preferences.getBytes(key, (T *)&buff, sizeof(T));
+    _preferences.end();
+    stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::Configured);
+    return true;
+}
+
+template bool Config::read<uint8_t>(const char *key, uint8_t *&buff);
+template bool Config::read<uint16_t>(const char *key, uint16_t *&buff);
+template bool Config::read<uint32_t>(const char *key, uint32_t *&buff);
+template bool Config::read<uint64_t>(const char *key, uint64_t *&buff);
+template bool Config::read<int8_t>(const char *key, int8_t *&buff);
+template bool Config::read<int16_t>(const char *key, int16_t *&buff);
+template bool Config::read<int32_t>(const char *key, int32_t *&buff);
+template bool Config::read<int64_t>(const char *key, int64_t *&buff);
+template bool Config::read<bool>(const char *key, bool *&buff);
+template bool Config::read<float_t>(const char *key, float_t *&buff);
+template bool Config::read<double_t>(const char *key, double_t *&buff);
+template bool Config::read<const char *>(const char *key, const char **&buff);
+template bool Config::read<String>(const char *key, String *&buff);
 
 void Config::clear()
 {
