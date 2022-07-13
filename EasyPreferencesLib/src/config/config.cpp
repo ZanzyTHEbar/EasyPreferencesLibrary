@@ -1,25 +1,16 @@
 #include "config.hpp"
 
 Config::Config(const char *configName, const char *partitionName) : _configName(configName),
-                                                                    _partitionName(partitionName) {}
+                                                                    _partitionName(partitionName),
+                                                                    _state(INIT) {}
 
 Config::~Config() {}
 
-void Config::begin()
+bool Config::begin()
 {
-    if (_preferences.begin(_configName))
-    {
-        log_i("Config %s opened\n", _configName);
-        _preferences.end();
-        log_d("Config initialized\n");
-        stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::Configured);
-    }
-    else
-    {
-        log_e("Config %s not opened\n", _configName);
-        stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::ErrorConfig);
-    }
+    bool success = _preferences.begin(_configName);
     delay(100);
+    return success;
 }
 
 /**
@@ -34,18 +25,18 @@ void Config::begin()
 template <typename T>
 void Config::write(const char *key, T &buff)
 {
-    if (stateManager.getCurrentConfigState() == ProgramStates::DeviceStates::ConfigState_e::Reading)
+    if (_state == Reading)
     {
         log_e("Config %s is in reading state\n", _configName);
-        stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::ErrorConfig);
+        _state = ERROR;
         return;
     }
 
-    stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::Writing);
+    _state = Writing;
     _preferences.begin(_configName);
     _preferences.putBytes(key, (T *)&buff, sizeof(T));
     _preferences.end();
-    stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::Configured);
+    _state = READY;
 }
 
 template void Config::write<uint8_t>(const char *key, uint8_t &buff);
@@ -65,18 +56,18 @@ template void Config::write<String>(const char *key, String &buff);
 template <typename T>
 void Config::write(const char *key, T *&buff)
 {
-    if (stateManager.getCurrentConfigState() == ProgramStates::DeviceStates::ConfigState_e::Reading)
+    if (_state == Reading)
     {
         log_e("Config %s is in reading state\n", _configName);
-        stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::ErrorConfig);
+        _state = ERROR;
         return;
     }
 
-    stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::Writing);
+    _state = Writing;
     _preferences.begin(_configName);
     _preferences.putBytes(key, (T *)buff, sizeof(T));
     _preferences.end();
-    stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::Configured);
+    _state = READY;
 }
 
 template void Config::write<uint8_t>(const char *key, uint8_t *&buff);
@@ -104,25 +95,18 @@ template void Config::write<String>(const char *key, String *&buff);
 template <typename T>
 bool Config::read(const char *key, T &buff)
 {
-    if (stateManager.getCurrentConfigState() == ProgramStates::DeviceStates::ConfigState_e::Writing)
+    if (_state == Writing)
     {
         log_e("Config::read() - Config is being written and can not be accessed currently");
-        stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::ErrorConfig);
+        _state = ERROR;
         return false;
     }
-
-    if (sizeof(buff) != _preferences.getBytes(key, (T *)&buff, sizeof(buff)))
-    {
-        log_e("Config::read() - Size of buffer does not match size of value");
-        stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::ErrorConfig);
-        return false;
-    }
-    stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::Reading);
+    _state = Reading;
     _preferences.begin(_configName, true);
-    _preferences.getBytes(key, (T *)&buff, sizeof(T));
+    bool success = _preferences.getBytes(key, (T *)&buff, sizeof(T) * sizeof(buff));
     _preferences.end();
-    stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::Configured);
-    return true;
+    _state = READY;
+    return success;
 }
 
 template bool Config::read<uint8_t>(const char *key, uint8_t &buff);
@@ -151,25 +135,18 @@ template bool Config::read<String>(const char *key, String &buff);
 template <typename T>
 bool Config::read(const char *key, T *&buff)
 {
-    if (stateManager.getCurrentConfigState() == ProgramStates::DeviceStates::ConfigState_e::Writing)
+    if (_State == Writing)
     {
         log_e("Config::read() - Config is being written and can not be accessed currently");
-        stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::ErrorConfig);
+        _state = ERROR;
         return false;
     }
-
-    if (sizeof(buff) != _preferences.getBytes(key, (T *)&buff, sizeof(buff)))
-    {
-        log_e("Config::read() - Size of buffer does not match size of value");
-        stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::ErrorConfig);
-        return false;
-    }
-    stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::Reading);
+    _state = Reading;
     _preferences.begin(_configName, true);
-    _preferences.getBytes(key, (T *)&buff, sizeof(T));
+    bool success = _preferences.getBytes(key, (T *)&buff, sizeof(T));
     _preferences.end();
-    stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::Configured);
-    return true;
+    _state = READY;
+    return success;
 }
 
 template bool Config::read<uint8_t>(const char *key, uint8_t *&buff);
@@ -188,29 +165,29 @@ template bool Config::read<String>(const char *key, String *&buff);
 
 void Config::clear()
 {
-    stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::Clearing);
+    _state = Writing;
     _preferences.begin(_configName);
     _preferences.clear();
     _preferences.end();
-    stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::Configured);
+    _state = READY;
 }
 
 void Config::remove(const char *key)
 {
-    stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::Clearing);
+    _state = Writing;
     _preferences.begin(_configName);
     _preferences.remove(key);
     _preferences.end();
-    stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::Configured);
+    _state = READY;
 }
 
 size_t Config::getValueLength(const char *key)
 {
-    stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::Reading);
+    _state = Reading;
     _preferences.begin(_configName);
     size_t length = _preferences.getBytesLength(key);
     _preferences.end();
-    stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::Configured);
+    _state = READY;
     return length;
 }
 
@@ -235,20 +212,20 @@ size_t Config::getValueLength(const char *key)
 //************************************************************
 byte Config::getType(const char *key)
 {
-    stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::Reading);
+    _state = Reading;
     _preferences.begin(_configName);
     byte type = _preferences.getType(key);
     _preferences.end();
-    stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::Configured);
+    _state = READY;
     return type;
 }
 
 size_t Config::freeEntries()
 {
-    stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::Reading);
+    _state = Reading;
     _preferences.begin(_configName);
     size_t freeEntries = _preferences.freeEntries();
     _preferences.end();
-    stateManager.setState(ProgramStates::DeviceStates::ConfigState_e::Configured);
+    _state = READY;
     return freeEntries;
 }

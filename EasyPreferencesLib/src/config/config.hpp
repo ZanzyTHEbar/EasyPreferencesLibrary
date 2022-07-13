@@ -1,7 +1,6 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 #include <Arduino.h>
-#include "StateManager/StateManager.hpp"
 #include <Preferences.h>
 
 class Config
@@ -9,7 +8,7 @@ class Config
 public:
     Config(const char *configName, const char *partitionName);
     virtual ~Config();
-    void begin();
+    bool begin();
     template <typename T>
     void write(const char *key, T &buff);
     template <typename T>
@@ -26,6 +25,15 @@ public:
     void checkConfigState();
 
 private:
+    enum State
+    {
+        INIT,
+        READY,
+        Reading,
+        Writing,
+        ERROR
+    };
+    State _state;
     Preferences _preferences;
     const char *_configName;
     const char *_partitionName;
