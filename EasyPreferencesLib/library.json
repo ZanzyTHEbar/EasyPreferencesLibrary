@@ -1,0 +1,19 @@
+{
+  "name":"EasyPreferencesLib",
+  "description":"Easy Preferences API Library for ESP8266 and ESP32",
+  "keywords":"easy, preferences, eeprom, storage, config",
+  "authors":
+  {
+    "name": "ZanzyTHEbar",
+    "maintainer": true
+  },
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/ZanzyTHEbar/EasyPreferencesLibrary/"
+  },
+  "version": "0.0.1",
+  "license": "MIT",
+  "frameworks": "arduino",
+  "platforms": ["espressif8266", "espressif32"]
+}
