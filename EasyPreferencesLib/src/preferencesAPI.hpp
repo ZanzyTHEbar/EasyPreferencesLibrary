@@ -20,7 +20,7 @@ public:
      * @see Takes a buffer as parameter to avoid the need to create a temporary variable
      */
     template <typename T>
-    void Config::write(const char *key, T *&buff)
+    void write(const char *key, T *&buff)
     {
         if (_state == Reading)
         {
@@ -36,7 +36,7 @@ public:
         _state = READY;
     }
     template <typename T>
-    void Config::write(const char *key, T &buff)
+    void write(const char *key, T &buff)
     {
         if (_state == Reading)
         {
@@ -62,7 +62,7 @@ public:
      * @see Takes a buffer as parameter to avoid the need to create a temporary variable
      */
     template <typename T>
-    bool Config::read(const char *key, T &buff)
+    bool read(const char *key, T &buff)
     {
         if (_state == Writing)
         {
@@ -79,7 +79,7 @@ public:
     }
 
     template <typename T>
-    bool Config::read(const char *key, T *&buff)
+    bool read(const char *key, T *&buff)
     {
         if (_state == Writing)
         {
