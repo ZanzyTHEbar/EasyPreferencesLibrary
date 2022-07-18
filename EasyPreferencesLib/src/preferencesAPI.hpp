@@ -81,7 +81,7 @@ public:
     template <typename T>
     bool Config::read(const char *key, T *&buff)
     {
-        if (_State == Writing)
+        if (_state == Writing)
         {
             log_e("Config::read() - Config is being written and can not be accessed currently");
             _state = ERROR;
