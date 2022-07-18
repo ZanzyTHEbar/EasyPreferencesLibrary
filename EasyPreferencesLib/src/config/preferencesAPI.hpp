@@ -1,5 +1,5 @@
-#ifndef CONFIG_HPP
-#define CONFIG_HPP
+#ifndef PREFERENCESAPI_HPP
+#define PREFERENCESAPI_HPP
 #include <Arduino.h>
 #include <Preferences.h>
 
